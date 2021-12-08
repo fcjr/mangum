@@ -116,12 +116,16 @@ class AwsAlb(AbstractHandler):
         http_method = event["httpMethod"]
         query_string = self.encode_query_string()
 
-        server_name = uq_headers.get("host", "mangum")
-        if ":" not in server_name:
-            server_port = uq_headers.get("x-forwarded-port", 80)
-        else:
-            server_name, server_port = server_name.split(":")  # pragma: no cover
-        server = (server_name, int(server_port))
+        try: 
+            server_name = uq_headers.get("host", "mangum")
+            if ":" not in server_name:
+                server_port = uq_headers.get("x-forwarded-port", 80)
+            else:
+                server_name, server_port = server_name.split(":")  # pragma: no cover
+            server = (server_name, int(server_port or 80))
+        except Exception:
+            server = ("mangum", 80)
+
         client = (source_ip, 0)
 
         if not path:

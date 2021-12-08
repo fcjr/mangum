@@ -24,14 +24,17 @@ class AwsCfLambdaAtEdge(AbstractHandler):
         scheme_header = cf_request["headers"].get("cloudfront-forwarded-proto", [{}])
         scheme = scheme_header[0].get("value", "https")
 
-        host_header = cf_request["headers"].get("host", [{}])
-        server_name = host_header[0].get("value", "mangum")
-        if ":" not in server_name:
-            forwarded_port_header = cf_request["headers"].get("x-forwarded-port", [{}])
-            server_port = forwarded_port_header[0].get("value", 80)
-        else:
-            server_name, server_port = server_name.split(":")  # pragma: no cover
-        server = (server_name, int(server_port))
+        try:
+            host_header = cf_request["headers"].get("host", [{}])
+            server_name = host_header[0].get("value", "mangum")
+            if ":" not in server_name:
+                forwarded_port_header = cf_request["headers"].get("x-forwarded-port", [{}])
+                server_port = forwarded_port_header[0].get("value", 80)
+            else:
+                server_name, server_port = server_name.split(":")  # pragma: no cover
+            server = (server_name, int(server_port or 80))
+        except Exception:
+            server = ("mangum", 80)
 
         source_ip = cf_request["clientIp"]
         client = (source_ip, 0)

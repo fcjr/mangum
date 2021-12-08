@@ -20,12 +20,15 @@ def get_server_and_headers(event: dict) -> Tuple:  # pragma: no cover
     # Subprotocols are not supported, so drop Sec-WebSocket-Protocol to be safe
     headers.pop("sec-websocket-protocol", None)
 
-    server_name = headers.get("host", "mangum")
-    if ":" not in server_name:
-        server_port = headers.get("x-forwarded-port", 80)
-    else:
-        server_name, server_port = server_name.split(":")
-    server = (server_name, int(server_port))
+    try:
+        server_name = headers.get("host", "mangum")
+        if ":" not in server_name:
+            server_port = headers.get("x-forwarded-port", 80)
+        else:
+            server_name, server_port = server_name.split(":")
+        server = (server_name, int(server_port or 80))
+    except Exception:
+        server = ("mangum", 80)
 
     return server, headers
 
